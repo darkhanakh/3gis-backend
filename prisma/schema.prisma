@@ -1,0 +1,120 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+  DRIVER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Request       Request[]
+  Vehicle       Vehicle[]
+}
+
+model Request {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  title       String
+  description String
+  status      String
+  type        String
+  urgency     String
+  media       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Vehicle {
+  id             String   @id @default(cuid())
+  driver         User     @relation(fields: [driverId], references: [id])
+  driverId       String
+  licensePlate   String
+  currentMission String?
+  location       String?
+  speed          Int?     @default(0)
+  maintenance    Json
+  malfunctions   Json
+  error_time     DateTime @default(now())
+  vehicleType    String
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Driver {
+  id                           Int      @id @default(autoincrement())
+  name                         String
+  department                   String
+  experience                   String
+  DateoOfBirth                 DateTime @default(now())
+  phoneNumber                  String
+}
+
+model Report {
+  id                           Int      @id @default(autoincrement())
+  vehicle_id                   Int
+  driver_id                    Int 
+  job_id                       Int
+  type                         String
+  time                         DateTime @default(now())
+  location                     String
+  media                        String
+  status                       String
+}
+
+model Document {
+  id                           Int      @id @default(autoincrement())
+  name                         String
+  description                  String
+}
+
+model Obd {
+  id                           Int      @id @default(autoincrement())
+  vehicle_id                   String
+  engineRpm                    Int
+  vehicleSpeed                 Int
+  throttlePosition             Int
+  fuelLevel                    Int
+  engineLoad                   Int
+  intakeAirTemperature         Int
+  massAirFlow                  Int
+  fuelPressure                 Int
+  fuelConsumptionRate          Int
+  engineCoolantTemperature     Int
+  oxygenSensorReading          Int
+  catalystTemperature          Int
+  evapEmissionControlPressure  Int
+  diagnosticTroubleCode        String
+  batteryVoltage               Int
+  transmissionFluidTemperature Int
+  oilTemperature               Int
+  brakePedalPosition           Int
+  steeringAngle                Int
+  acceleratorPedalPosition     Int
+  absStatus                    Boolean
+  airbagDeploymentStatus       Boolean
+  tirePressure                 Int
+  gpsCoordinates               String
+  altitude                     Int
+  heading                      Int
+  distanceTraveled             Int
+  time                         DateTime @default(now())
+}
