@@ -40,10 +40,10 @@ app.get('/vehicles', async (req: Request, res: Response) => {
 
 // Create a vehicle
 app.post('/vehicles', async (req: Request, res: Response) => {
-  const { driverId, phoneNumber, vehicleType } = req.body;
+  const { driverId, licensePlate, vehicleType } = req.body;
   try {
     const newVehicle = await prisma.vehicle.create({
-      data: { driverId, phoneNumber, vehicleType },
+      data: { driverId, licensePlate, vehicleType, maintenance: [], malfunctions: [], driver: {} },
     });
     res.status(201).json(newVehicle);
   } catch (error) {
@@ -63,19 +63,34 @@ app.get('/requests', async (req: Request, res: Response) => {
 
 // Create a request
 app.post('/requests', async (req: Request, res: Response) => {
-  const { userId, title, description, status, type, urgency } = req.body;
+  const { userId, title, description, status, type, urgency, media } = req.body;
+
+  // Validate required fields
+  if (!userId || !title || !description || !status || !type || !urgency || !media) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   try {
     const newRequest = await prisma.request.create({
-      data: { userId, title, description, status, type, urgency },
+      data: { 
+        userId, 
+        title, 
+        description, 
+        status, 
+        type, 
+        urgency, 
+        media: media || {}, // Ensure media is valid JSON or set as empty object
+      },
     });
     res.status(201).json(newRequest);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating request' });
+    res.status(500).json({ error: 'Error creating request', details: error });
   }
 });
 
+
 // Get all vehicle metrics
-app.get('/vehicle-metrics', async (req: Request, res: Response) => {
+app.get('/metrics', async (req: Request, res: Response) => {
   try {
     const metrics = await prisma.obd.findMany();
     res.json(metrics);
@@ -85,7 +100,7 @@ app.get('/vehicle-metrics', async (req: Request, res: Response) => {
 });
 
 // Create a new vehicle metrics entry
-app.post('/vehicle-metrics', async (req: Request, res: Response) => {
+app.post('/metrics', async (req: Request, res: Response) => {
   const data = req.body;
   try {
     const newMetrics = await prisma.obd.create({
@@ -118,6 +133,7 @@ app.post('/vehicle-metrics', async (req: Request, res: Response) => {
         heading: data.heading,
         distanceTraveled: data.distance_travelled,
         time: new Date(data.time),
+        vehicle_id: data.vehicle_id, // Add the vehicle_id property
       },
     });
     res.status(201).json(newMetrics);
@@ -125,6 +141,32 @@ app.post('/vehicle-metrics', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error creating vehicle metrics entry' });
   }
 });
+
+app.post('/gps', async (req: Request, res: Response) => {
+  const { vehicleId, latitude, longitude, altitude, speed, timestamp } = req.body;
+
+  // Validate required fields
+  if (!vehicleId || !latitude || !longitude) {
+    return res.status(400).json({ error: 'Missing required fields: vehicleId, latitude, and longitude are required.' });
+  }
+
+  try {
+    const newGPSData = await prisma.gps.create({
+      data: {
+        vehicleId,
+        latitude,
+        longitude,
+        altitude: altitude || null,
+        speed: speed || null,
+        timestamp: timestamp ? new Date(timestamp) : undefined,  // If timestamp is provided, convert it to Date
+      },
+    });
+    res.status(201).json(newGPSData);
+  } catch (error) {
+    res.status(500).json({ error: 'Error creating GPS data', details: error });
+  }
+});
+
 
 // Start the server
 const port = process.env.PORT || 3000;
