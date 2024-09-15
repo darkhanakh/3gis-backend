@@ -21,11 +21,10 @@ model User {
   password      String?
   emailVerified DateTime?
   image         String?
-  role          Role      @default(USER)
+  role          Role      @default(DRIVER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   Request       Request[]
-  Vehicle       Vehicle[]
 }
 
 model Request {
@@ -44,17 +43,16 @@ model Request {
 
 model Vehicle {
   id             String   @id @default(cuid())
-  driver         User     @relation(fields: [driverId], references: [id])
-  driverId       String
-  licensePlate   String
+  driverId       String?
+  licensePlate   String?
   currentMission String?
   location       String?
   speed          Int?     @default(0)
-  maintenance    Json
-  malfunctions   Json
+  maintenance    Json?
+  malfunctions   Json?
   error_time     DateTime @default(now())
-  vehicleType    String
-  status         String   @default("active")
+  vehicleType    String?
+  status         String?   @default("active")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -95,29 +93,23 @@ model Obd {
   fuelLevel                    Int
   engineLoad                   Int
   intakeAirTemperature         Int
-  massAirFlow                  Int
+  massAirFlow                  Float    // Changed to Float
   fuelPressure                 Int
-  fuelConsumptionRate          Int
+  fuelConsumptionRate          Float    // Changed to Float
   engineCoolantTemperature     Int
-  oxygenSensorReading          Int
+  oxygenSensorReading          Float    // Changed to Float
   catalystTemperature          Int
-  evapEmissionControlPressure  Int
+  evapEmissionControlPressure  Float    // Changed to Float
   diagnosticTroubleCode        String
-  batteryVoltage               Int
-  transmissionFluidTemperature Int
+  batteryVoltage               Float    // Changed to Float
   oilTemperature               Int
-  brakePedalPosition           Int
-  steeringAngle                Int
   acceleratorPedalPosition     Int
-  absStatus                    Boolean
-  airbagDeploymentStatus       Boolean
-  tirePressure                 Int
-  gpsCoordinates               String?
-  altitude                     Int
-  heading                      Int
-  distanceTraveled             Int
-  time                         DateTime @default(now())
+  distanceTraveled             Float    // Changed to Float
+  time                         DateTime? @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
 
 
 model Gps {
@@ -130,4 +122,31 @@ model Gps {
   timestamp   DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+
+
+model Obd_fuel {
+  id                           Int      @id @default(autoincrement())
+  vehicle_id                   String
+  engineRpm                    Int
+  fuelLevel                    Int
+  engineLoad                   Int
+  massAirFlow                  Float    // Changed to Float
+  fuelPressure                 Int
+  fuelConsumptionRate          Float    // Changed to Float
+  diagnosticTroubleCode        String
+  absStatus                    Boolean
+  tirePressure                 Int
+  distanceTraveled             Float    // Changed to Float
+  time                         DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model Obd_check{
+  id                           Int   @id @default(autoincrement())
+  all                          Json
+  createdAt   DateTime @default(now())
 }

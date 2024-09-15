@@ -43,11 +43,11 @@ app.post('/vehicles', async (req: Request, res: Response) => {
   const { driverId, licensePlate, vehicleType } = req.body;
   try {
     const newVehicle = await prisma.vehicle.create({
-      data: { driverId, licensePlate, vehicleType, maintenance: [], malfunctions: [], driver: {} },
+      data: { driverId, licensePlate, vehicleType, maintenance: [], malfunctions: []},
     });
     res.status(201).json(newVehicle);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating vehicle' });
+    res.status(500).json({ error: 'Error creating vehicle', message: error});
   }
 });
 
@@ -62,31 +62,34 @@ app.get('/requests', async (req: Request, res: Response) => {
 });
 
 // Create a request
-app.post('/requests', async (req: Request, res: Response) => {
-  const { userId, title, description, status, type, urgency, media } = req.body;
+app.post('/vehicles', async (req: Request, res: Response) => {
+  const { driverId, licensePlate, vehicleType, maintenance, malfunctions, currentMission, location, speed, status } = req.body;
 
   // Validate required fields
-  if (!userId || !title || !description || !status || !type || !urgency || !media) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  if (!driverId || !licensePlate || !vehicleType) {
+    return res.status(400).json({ error: 'Missing required fields: driverId, licensePlate, and vehicleType are required.' });
   }
 
   try {
-    const newRequest = await prisma.request.create({
-      data: { 
-        userId, 
-        title, 
-        description, 
-        status, 
-        type, 
-        urgency, 
-        media: media || {}, // Ensure media is valid JSON or set as empty object
+    const newVehicle = await prisma.vehicle.create({
+      data: {
+        driverId,
+        licensePlate,
+        vehicleType,
+        maintenance: maintenance || {},       // Ensure it's valid JSON or set an empty object
+        malfunctions: malfunctions || {},     // Ensure it's valid JSON or set an empty object
+        currentMission: currentMission || null, // Optional field
+        location: location || null,             // Optional field
+        speed: speed || 0,                      // Optional field with default value
+        status: status || 'active',             // Optional field with default value
       },
     });
-    res.status(201).json(newRequest);
+    res.status(201).json(newVehicle);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating request', details: error });
+    res.status(500).json({ error: 'Error creating vehicle', message: error });
   }
 });
+
 
 
 // Get all vehicle metrics
@@ -105,40 +108,31 @@ app.post('/metrics', async (req: Request, res: Response) => {
   try {
     const newMetrics = await prisma.obd.create({
       data: {
-        engineRpm: data.Engine_rpm,
-        vehicleSpeed: data.Vehicle_speed,
-        throttlePosition: data.throttle_position,
-        fuelLevel: data.fuel_level,
-        engineLoad: data.engine_load,
-        intakeAirTemperature: data.intake_air_temperature,
-        massAirFlow: data.mass_air_flow,
-        fuelPressure: data.fuel_pressure,
-        fuelConsumptionRate: data.fuel_consumption_rate,
-        engineCoolantTemperature: data.engine_coolant_temperature,
-        oxygenSensorReading: data.oxygen_sensor_reading,
-        catalystTemperature: data.catalyst_temperature,
-        evapEmissionControlPressure: data.evap_emission_control_pressure,
-        diagnosticTroubleCode: data.diagnostic_trouble_code,
-        batteryVoltage: data.battery_voltage,
-        transmissionFluidTemperature: data.transmission_fluid_temperature,
-        oilTemperature: data.oil_temperature,
-        brakePedalPosition: data.brake_pedal_position,
-        steeringAngle: data.steering_angle,
-        acceleratorPedalPosition: data.accelerator_pedal_position,
-        absStatus: data.abs_status,
-        airbagDeploymentStatus: data.airbag_deployment_status,
-        tirePressure: data.tire_pressure,
-        gpsCoordinates: data.gps_coordinates,
-        altitude: data.altitude,
-        heading: data.heading,
-        distanceTraveled: data.distance_travelled,
-        time: new Date(data.time),
-        vehicle_id: data.vehicle_id, // Add the vehicle_id property
+        vehicle_id: data.vehicle_id || null,
+        engineRpm: data.engineRpm || null,  // Default to null if not provided
+        vehicleSpeed: data.vehicleSpeed || null,
+        throttlePosition: data.throttlePosition || null,
+        fuelLevel: data.fuelLevel || null,
+        engineLoad: data.engineLoad || null,
+        intakeAirTemperature: data.intakeAirTemperature || null,
+        massAirFlow: data.massAirFlow || null,
+        fuelPressure: data.fuelPressure || null,
+        fuelConsumptionRate: data.fuelConsumptionRate || null,
+        engineCoolantTemperature: data.engineCoolantTemperature || null,
+        oxygenSensorReading: data.oxygenSensorReading || null,
+        catalystTemperature: data.catalystTemperature || null,
+        evapEmissionControlPressure: data.evapEmissionControlPressure || null,
+        diagnosticTroubleCode: data.diagnosticTroubleCode || null,
+        batteryVoltage: data.batteryVoltage || null,
+        oilTemperature: data.oilTemperature || null,
+        acceleratorPedalPosition: data.acceleratorPedalPosition || null,
+        distanceTraveled: data.distanceTraveled || null,
+        time: data.time ? new Date(data.time) : undefined,  // Convert to Date if provided
       },
     });
     res.status(201).json(newMetrics);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating vehicle metrics entry' });
+    res.status(500).json({ error: 'Error creating vehicle metrics entry', message: error });
   }
 });
 
@@ -167,6 +161,98 @@ app.post('/gps', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/obd_fuel', async (req, res) => {
+  try {
+    const {
+      vehicle_id,
+      engineRpm,
+      fuelLevel,
+      engineLoad,
+      massAirFlow,
+      fuelPressure,
+      fuelConsumptionRate,
+      diagnosticTroubleCode,
+      absStatus,
+      tirePressure,
+      distanceTraveled,
+      time
+    } = req.body;
+
+    const newFuelMetrics = await prisma.obd_fuel.create({
+      data: {
+        vehicle_id,
+        engineRpm,
+        fuelLevel,
+        engineLoad,
+        massAirFlow,
+        fuelPressure,
+        fuelConsumptionRate,
+        diagnosticTroubleCode,
+        absStatus,
+        tirePressure,
+        distanceTraveled,
+        time: time ? new Date(time) : undefined // Optional time, use current if not provided
+      }
+    });
+
+    res.status(201).json(newFuelMetrics);
+  } catch (error) {
+    res.status(500).json({ error: 'Error creating OBD fuel metrics', details: error });
+  }
+});
+
+app.post('/test', async (req, res) => {
+  try {
+      // Save the entire JSON object from the request body
+      const jsonData = req.body;
+
+      // Ensure jsonData is not empty
+      if (!jsonData) {
+          return res.status(400).json({ message: 'No data provided' });
+      }
+
+      // Create a new record in the database
+      const newRecord = await prisma.obd_check.create({
+          data: {
+              all: jsonData,
+          },
+      });
+
+      res.status(201).json(newRecord);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/test', async (req, res) => {
+  try {
+      const records = await prisma.obd_check.findMany();
+      res.status(200).json(records);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/test/latest', async (req, res) => {
+  try {
+      const latestRecord = await prisma.obd_check.findFirst({
+          orderBy: {
+              createdAt: 'desc',
+          },
+      });
+
+      if (!latestRecord) {
+          return res.status(404).json({ message: 'No records found' });
+      }
+
+      res.status(200).json(latestRecord);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Start the server
 const port = process.env.PORT || 3000;
