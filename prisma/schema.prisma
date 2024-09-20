@@ -87,28 +87,32 @@ model Document {
 model Obd {
   id                           Int      @id @default(autoincrement())
   vehicle_id                   String
-  engineRpm                    Int
-  vehicleSpeed                 Int
-  throttlePosition             Int
-  fuelLevel                    Int
-  engineLoad                   Int
-  intakeAirTemperature         Int
-  massAirFlow                  Float    // Changed to Float
-  fuelPressure                 Int
-  fuelConsumptionRate          Float    // Changed to Float
-  engineCoolantTemperature     Int
-  oxygenSensorReading          Float    // Changed to Float
-  catalystTemperature          Int
-  evapEmissionControlPressure  Float    // Changed to Float
+  engineRpm                    Float
+  vehicleSpeed                 Float
+  throttlePosition             Float
+  fuelLevel                    Float
+  shortTrim1                   Float?   // Ensure this exists and matches exactly
+  longTrim1                    Float?
+  shortTrim2                   Float?
+  longTrim2                    Float?
+  engineLoad                   Float
+  intakeAirTemperature         Float
+  massAirFlow                  Float
+  fuelPressure                 Float
+  fuelConsumptionRate          Float
+  engineCoolantTemperature     Float
+  oxygenSensorReading          Float
+  catalystTemperature          Float
+  evapEmissionControlPressure  Float
   diagnosticTroubleCode        String
-  batteryVoltage               Float    // Changed to Float
-  oilTemperature               Int
-  acceleratorPedalPosition     Int
-  distanceTraveled             Float    // Changed to Float
+  batteryVoltage               Float
+  oilTemperature               Float
+  distanceTraveled             Float
   time                         DateTime? @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 }
+
 
 
 

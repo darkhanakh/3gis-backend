@@ -113,6 +113,10 @@ app.post('/metrics', async (req: Request, res: Response) => {
         vehicleSpeed: data.vehicleSpeed || null,
         throttlePosition: data.throttlePosition || null,
         fuelLevel: data.fuelLevel || null,
+        shortTrim1: data.shortTrim1 || null,
+        longTrim1: data.longTrim1 || null,
+        shortTrim2: data.shortTrim2 || null,
+        longTrim2: data.longTrim2 || null,
         engineLoad: data.engineLoad || null,
         intakeAirTemperature: data.intakeAirTemperature || null,
         massAirFlow: data.massAirFlow || null,
@@ -125,7 +129,6 @@ app.post('/metrics', async (req: Request, res: Response) => {
         diagnosticTroubleCode: data.diagnosticTroubleCode || null,
         batteryVoltage: data.batteryVoltage || null,
         oilTemperature: data.oilTemperature || null,
-        acceleratorPedalPosition: data.acceleratorPedalPosition || null,
         distanceTraveled: data.distanceTraveled || null,
         time: data.time ? new Date(data.time) : undefined,  // Convert to Date if provided
       },
@@ -135,6 +138,7 @@ app.post('/metrics', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error creating vehicle metrics entry', message: error });
   }
 });
+
 
 app.post('/gps', async (req: Request, res: Response) => {
   const { vehicleId, latitude, longitude, altitude, speed, timestamp } = req.body;
@@ -233,6 +237,7 @@ app.get('/test', async (req, res) => {
       console.error(error);
       res.status(500).json({ message: 'Internal server error' });
   }
+  
 });
 
 app.get('/test/latest', async (req, res) => {
