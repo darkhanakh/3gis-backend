@@ -344,7 +344,7 @@ app.post('/reports', async (req, res) => {
 
 app.get('/gps', async (req, res) => {
   try {
-      const records = await prisma.obd_check.findMany();
+      const records = await prisma.gps.findMany();
       res.status(200).json(records);
   } catch (error) {
       console.error(error);
