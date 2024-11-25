@@ -21,7 +21,7 @@ model User {
   password      String?
   emailVerified DateTime?
   image         String?
-  role          Role      @default(DRIVER)
+  role          Role      @default(ADMIN)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   Request       Request[]
@@ -166,3 +166,4 @@ model Obd_check{
   all                          Json
   createdAt   DateTime @default(now())
 }
+

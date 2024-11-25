@@ -28,6 +28,42 @@ app.post('/users', async (req: Request, res: Response) => {
   }
 });
 
+
+// Update User Role Route
+app.put('/user/:id/role', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    try {
+        // Check if the role is provided
+        if (!role) {
+            return res.status(400).json({ message: 'Role is required' });
+        }
+
+        // Find the user by ID
+        const existingUser = await prisma.user.findUnique({
+            where: { id }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update the user's role
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: { role },
+        });
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
 // Get all vehicles
 app.get('/vehicles', async (req: Request, res: Response) => {
   try {
@@ -257,6 +293,64 @@ app.get('/test/latest', async (req, res) => {
       console.error(error);
       res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+
+// GET: Получение всех отчетов
+app.get('/reports', async (req, res) => {
+  try {
+    const reports = await prisma.report.findMany();
+    res.status(200).json(reports);
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ error: 'Failed to fetch reports' });
+  }
+});
+
+// POST: Создание нового отчета
+app.post('/reports', async (req, res) => {
+  const {
+    vehicle_id,
+    driver_id,
+    job_id,
+    type,
+    time,
+    location,
+    media,
+    status,
+  } = req.body;
+
+  try {
+    const newReport = await prisma.report.create({
+      data: {
+        vehicle_id,
+        driver_id,
+        job_id,
+        type,
+        time: time ? new Date(time) : undefined, // Устанавливаем время, если оно передано
+        location,
+        media,
+        status,
+      },
+    });
+
+    res.status(201).json(newReport);
+  } catch (error) {
+    console.error('Error creating report:', error);
+    res.status(500).json({ error: 'Failed to create report' });
+  }
+});
+
+
+app.get('/gps', async (req, res) => {
+  try {
+      const records = await prisma.obd_check.findMany();
+      res.status(200).json(records);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+  
 });
 
 // Start the server
